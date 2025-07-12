@@ -551,48 +551,48 @@ function adaptToScreenSize() {
     const aspectRatio = vh / vw;
     const isSmallScreen = vh < 600 || vw < 400;
     
-    // 计算动态的布局参数
-    let textAreaHeight, buttonAreaBottom, buttonAreaMargin;
+    // 重新设计的布局参数 - 更加直观和有效
+    let textAreaHeight, buttonAreaHeight, safeAreaPadding;
     
     if (isSmallScreen) {
-        // 小屏幕设备特殊处理
-        textAreaHeight = '42vh';
-        buttonAreaBottom = '3vh';
-        buttonAreaMargin = '8vh';
+        // 小屏幕设备：给文字更多空间，但确保按钮可见
+        textAreaHeight = '58vh';
+        buttonAreaHeight = '32vh';
+        safeAreaPadding = '10px';
     } else if (aspectRatio > 2.2) {
-        // 超长屏幕 (如21:9+)
-        textAreaHeight = '60vh';
-        buttonAreaBottom = '3vh';
-        buttonAreaMargin = '8vh';
+        // 超长屏幕 (如21:9+)：充分利用垂直空间
+        textAreaHeight = '65vh';
+        buttonAreaHeight = '25vh';
+        safeAreaPadding = '15px';
     } else if (aspectRatio > 2.0) {
         // 很长屏幕 (如20:9)
-        textAreaHeight = '58vh';
-        buttonAreaBottom = '4vh';
-        buttonAreaMargin = '10vh';
+        textAreaHeight = '62vh';
+        buttonAreaHeight = '28vh';
+        safeAreaPadding = '15px';
     } else if (aspectRatio > 1.8) {
         // 长屏幕 (如18:9, 19.5:9)
-        textAreaHeight = '52vh';
-        buttonAreaBottom = '6vh';
-        buttonAreaMargin = '12vh';
+        textAreaHeight = '58vh';
+        buttonAreaHeight = '32vh';
+        safeAreaPadding = '20px';
     } else if (aspectRatio > 1.5) {
         // 标准屏幕 (如16:9)
-        textAreaHeight = '48vh';
-        buttonAreaBottom = '8vh';
-        buttonAreaMargin = '15vh';
+        textAreaHeight = '55vh';
+        buttonAreaHeight = '35vh';
+        safeAreaPadding = '20px';
     } else {
-        // 宽屏或横屏
-        textAreaHeight = '45vh';
-        buttonAreaBottom = '5vh';
-        buttonAreaMargin = '10vh';
+        // 宽屏或横屏：文字区域相对较小，按钮区域适中
+        textAreaHeight = '50vh';
+        buttonAreaHeight = '38vh';
+        safeAreaPadding = '15px';
     }
     
-    // 应用动态样式
+    // 应用新的动态样式
     document.documentElement.style.setProperty('--text-area-height', textAreaHeight);
-    document.documentElement.style.setProperty('--button-area-bottom', buttonAreaBottom);
-    document.documentElement.style.setProperty('--button-area-margin', buttonAreaMargin);
+    document.documentElement.style.setProperty('--button-area-height', buttonAreaHeight);
+    document.documentElement.style.setProperty('--safe-area-padding', safeAreaPadding);
     
     // 调试信息（开发时可取消注释）
-    // console.log(`Screen: ${vw}x${vh}, Ratio: ${aspectRatio.toFixed(2)}, Text: ${textAreaHeight}, Margin: ${buttonAreaMargin}`);
+    console.log(`Screen: ${vw}x${vh}, Ratio: ${aspectRatio.toFixed(2)}, Text: ${textAreaHeight}, Button Area: ${buttonAreaHeight}, Padding: ${safeAreaPadding}`);
 }
 
 // 页面加载完成后初始化
