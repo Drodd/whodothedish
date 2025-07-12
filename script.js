@@ -1,3 +1,21 @@
+// 游戏状态和DOM元素
+let currentStory = 'start';
+let isAnimating = false;
+let animationTimeouts = [];
+let imagesLoaded = false;
+let totalImages = 0;
+let loadedImages = 0;
+
+// DOM元素引用
+const titleScreen = document.getElementById('titleScreen');
+const gameScreen = document.getElementById('gameScreen');
+const startGameBtn = document.getElementById('startGameBtn');
+const loadingIndicator = document.getElementById('loadingIndicator');
+const backgroundImage = document.getElementById('backgroundImage');
+const storyTextElement = document.getElementById('storyText');
+const choicesContainer = document.getElementById('choicesContainer');
+const continueArea = document.getElementById('continueArea');
+
 // 故事数据结构
 const storyData = {
     "start": {
@@ -312,35 +330,98 @@ const storyData = {
     }
 };
 
-// 游戏状态
-let currentStory = "start";
-let gameHistory = [];
-let isAnimating = false;
-let animationTimeouts = [];
+// 图片预加载功能
+function preloadImages() {
+    const images = [
+        'img/0_Title.png',
+        'img/1_After_dinner.png',
+        'img/2_Wife_unhappy.png',
+        'img/3_Play_foolish.png',
+        'img/4_Sweet_words.png',
+        'img/5_Apology.png',
+        'img/6_Wife_angry.png',
+        'img/7_Close_door.png',
+        'img/8_Working.png',
+        'img/9_Washdish.png',
+        'img/End1_Fired.png',
+        'img/End2_Quit.png',
+        'img/End3_Divorce.png'
+    ];
 
-// DOM元素
-const storyTextElement = document.getElementById('story-text');
-const choicesContainer = document.getElementById('choices-container');
-const backgroundElement = document.getElementById('background');
-const continueArea = document.getElementById('continue-area');
+    totalImages = images.length;
+    loadedImages = 0;
+    
+    // 显示加载指示器
+    loadingIndicator.classList.add('show');
+    startGameBtn.disabled = true;
+    
+    images.forEach(imagePath => {
+        const img = new Image();
+        img.onload = () => {
+            loadedImages++;
+            updateLoadingProgress();
+            if (loadedImages === totalImages) {
+                onImagesLoaded();
+            }
+        };
+        img.onerror = () => {
+            console.error(`Failed to load image: ${imagePath}`);
+            loadedImages++;
+            updateLoadingProgress();
+            if (loadedImages === totalImages) {
+                onImagesLoaded();
+            }
+        };
+        img.src = imagePath;
+    });
+}
+
+function updateLoadingProgress() {
+    const progress = Math.round((loadedImages / totalImages) * 100);
+    const loadingText = document.querySelector('.loading-text');
+    loadingText.textContent = `正在加载游戏资源... ${progress}%`;
+}
+
+function onImagesLoaded() {
+    imagesLoaded = true;
+    setTimeout(() => {
+        loadingIndicator.classList.remove('show');
+        startGameBtn.disabled = false;
+        startGameBtn.textContent = '开始游戏';
+    }, 500);
+}
+
+// 界面切换功能
+function showGameScreen() {
+    titleScreen.classList.add('hidden');
+    setTimeout(() => {
+        gameScreen.classList.add('show');
+        initGame();
+    }, 800);
+}
+
+function showTitleScreen() {
+    gameScreen.classList.remove('show');
+    setTimeout(() => {
+        titleScreen.classList.remove('hidden');
+    }, 800);
+}
 
 // 初始化游戏
 function initGame() {
-    currentStory = "start";
-    gameHistory = [];
-    
-    // 清除动画状态
+    // 清除之前的动画状态
     animationTimeouts.forEach(timeout => clearTimeout(timeout));
     animationTimeouts = [];
     isAnimating = false;
     
-    // 重置滚动位置
-    storyTextElement.scrollTop = 0;
-    
-    // 隐藏选项按钮和继续区域
-    choicesContainer.classList.remove('show');
+    // 重置界面状态
+    storyTextElement.innerHTML = '';
+    choicesContainer.innerHTML = '';
     continueArea.classList.remove('show');
+    choicesContainer.classList.remove('show');
     
+    // 开始第一个故事
+    currentStory = 'start';
     showStory(currentStory);
 }
 
@@ -353,7 +434,7 @@ function showStory(storyId) {
     }
 
     // 更新背景图片
-    backgroundElement.style.backgroundImage = `url('${story.background}')`;
+    backgroundImage.style.backgroundImage = `url('${story.background}')`;
 
     // 隐藏选项按钮
     choicesContainer.classList.remove('show');
@@ -371,7 +452,7 @@ function showStory(storyId) {
     });
 
     // 记录历史
-    gameHistory.push(storyId);
+    // gameHistory.push(storyId); // This line was removed as per the new_code, as gameHistory is no longer defined.
 }
 
 // 手动逐行显示文本
@@ -514,6 +595,10 @@ function makeChoice(nextStoryId) {
         animationTimeouts = [];
         isAnimating = false;
         
+        // 立即隐藏并清理选择按钮容器，避免触发区域残留
+        choicesContainer.classList.remove('show');
+        choicesContainer.innerHTML = '';
+        
         // 隐藏继续区域
         continueArea.classList.remove('show');
         
@@ -528,7 +613,7 @@ function makeChoice(nextStoryId) {
 // 重新开始游戏
 function restartGame() {
     if (confirm('确定要重新开始游戏吗？')) {
-        initGame();
+        showTitleScreen();
     }
 }
 
@@ -592,13 +677,22 @@ function adaptToScreenSize() {
     document.documentElement.style.setProperty('--safe-area-padding', safeAreaPadding);
     
     // 调试信息（开发时可取消注释）
-    console.log(`Screen: ${vw}x${vh}, Ratio: ${aspectRatio.toFixed(2)}, Text: ${textAreaHeight}, Button Area: ${buttonAreaHeight}, Padding: ${safeAreaPadding}`);
+    // console.log(`Screen: ${vw}x${vh}, Ratio: ${aspectRatio.toFixed(2)}, Text: ${textAreaHeight}, Button Area: ${buttonAreaHeight}, Padding: ${safeAreaPadding}`);
 }
 
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', () => {
     adaptToScreenSize();
-    initGame();
+    
+    // 绑定开始游戏按钮事件
+    startGameBtn.addEventListener('click', () => {
+        if (imagesLoaded) {
+            showGameScreen();
+        }
+    });
+    
+    // 开始预加载图片
+    preloadImages();
 });
 
 // 监听屏幕尺寸变化
@@ -622,27 +716,7 @@ window.addEventListener('error', (event) => {
 });
 
 // 预加载图片
-function preloadImages() {
-    const images = [
-        'img/1_After_dinner.png',
-        'img/2_Wife_unhappy.png',
-        'img/3_Play_foolish.png',
-        'img/4_Sweet_words.png',
-        'img/5_Apology.png',
-        'img/6_Wife_angry.png',
-        'img/7_Close_door.png',
-        'img/8_Working.png',
-        'img/9_Washdish.png',
-        'img/End1_Fired.png',
-        'img/End2_Quit.png',
-        'img/End3_Divorce.png'
-    ];
-
-    images.forEach(imagePath => {
-        const img = new Image();
-        img.src = imagePath;
-    });
-}
+// preloadImages(); // This line was removed as per the new_code, as preloadImages is now called directly in DOMContentLoaded.
 
 // 预加载图片
-preloadImages(); 
+// preloadImages(); 

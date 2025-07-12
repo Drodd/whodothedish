@@ -3,33 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>洗碗风波 - 互动故事</title>
+    <title>今天谁洗碗？</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="game-container">
-        <!-- 背景图片 -->
-        <div class="background-image" id="background"></div>
-        
-        <!-- 故事内容区域 -->
-        <div class="story-content">
-            <!-- 故事文本 -->
-            <div class="story-text" id="story-text">
-                <p>正在加载故事...</p>
-            </div>
-            
-            <!-- 选择按钮区域 -->
-            <div class="choices-container" id="choices-container">
-                <!-- 选择按钮将通过JavaScript动态生成 -->
-            </div>
-            
-            <!-- 点击继续区域 -->
-            <div class="continue-area" id="continue-area">
-                <div class="continue-hint">点击继续</div>
+        <!-- Title界面 -->
+        <div class="title-screen" id="titleScreen">
+            <div class="title-background"></div>
+            <div class="title-content">
+                <div class="title-top">
+                    <h1 class="game-title">今天谁洗碗？</h1>
+                </div>
+                <div class="title-bottom">
+                    <button class="start-game-btn" id="startGameBtn">开始游戏</button>
+                    <div class="loading-indicator" id="loadingIndicator">
+                        <div class="loading-spinner"></div>
+                        <p class="loading-text">正在加载游戏资源...</p>
+                    </div>
+                </div>
             </div>
         </div>
-        
 
+        <!-- 游戏界面 -->
+        <div class="game-screen" id="gameScreen">
+            <div class="background-image" id="backgroundImage"></div>
+            <div class="story-content">
+                <div class="story-text" id="storyText"></div>
+                <div class="continue-area" id="continueArea">
+                    <div class="continue-hint">点击继续</div>
+                </div>
+                <div class="choices-container" id="choicesContainer"></div>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>
