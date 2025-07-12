@@ -6,17 +6,9 @@ let imagesLoaded = false;
 let totalImages = 0;
 let loadedImages = 0;
 
-// DOM元素引用
-const titleScreen = document.getElementById('titleScreen');
-const gameScreen = document.getElementById('gameScreen');
-const startGameBtn = document.getElementById('startGameBtn');
-const loadingIndicator = document.getElementById('loadingIndicator');
-const backgroundImage1 = document.getElementById('backgroundImage1');
-const backgroundImage2 = document.getElementById('backgroundImage2');
-const storyTextElement = document.getElementById('storyText');
-const choicesContainer = document.getElementById('choicesContainer');
-const continueArea = document.getElementById('continueArea');
-const titleBackground = document.querySelector('.title-background');
+// DOM元素引用 - 将在DOMContentLoaded事件中初始化
+let titleScreen, gameScreen, startGameBtn, loadingIndicator;
+let backgroundImage1, backgroundImage2, storyTextElement, choicesContainer, continueArea, titleBackground;
 
 // 背景图层状态管理
 let currentBackgroundLayer = 1; // 当前活跃的背景图层 (1 或 2)
@@ -422,8 +414,6 @@ function changeBackground(newImageUrl) {
     
     // 切换当前活跃层
     currentBackgroundLayer = currentBackgroundLayer === 1 ? 2 : 1;
-    
-    console.log(`背景图切换到: ${newImageUrl}`);
 }
 
 // 界面切换功能
@@ -722,7 +712,24 @@ function adaptToScreenSize() {
 
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', () => {
+    // 初始化DOM元素引用
+    titleScreen = document.getElementById('titleScreen');
+    gameScreen = document.getElementById('gameScreen');
+    startGameBtn = document.getElementById('startGameBtn');
+    loadingIndicator = document.getElementById('loadingIndicator');
+    backgroundImage1 = document.getElementById('backgroundImage1');
+    backgroundImage2 = document.getElementById('backgroundImage2');
+    storyTextElement = document.getElementById('storyText');
+    choicesContainer = document.getElementById('choicesContainer');
+    continueArea = document.getElementById('continueArea');
+    titleBackground = document.querySelector('.title-background');
+    
     adaptToScreenSize();
+    
+    // 检查关键DOM元素是否正确获取
+    if (!titleBackground) {
+        console.error('无法找到.title-background元素');
+    }
     
     // 绑定开始游戏按钮事件
     startGameBtn.addEventListener('click', () => {
