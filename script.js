@@ -477,11 +477,10 @@ function preloadNextImages(storyId) {
 function checkTitleBackgroundImage() {
     if (!titleBackground) return;
     
-    // 尝试多种图片路径
+    // 简化路径检查，优先使用最可能成功的路径
     const imagePaths = [
-        './img/0_Title.png',
         'img/0_Title.png',
-        location.origin + '/img/0_Title.png',
+        './img/0_Title.png',
         location.origin + location.pathname.replace(/\/[^\/]*$/, '') + '/img/0_Title.png'
     ];
     
@@ -590,12 +589,11 @@ function forceTitleBackgroundImage(imagePath) {
         titleBackground.style.backgroundRepeat = 'no-repeat';
         titleBackground.style.opacity = '1';
         
-        // 移动端特殊处理
+        // 移动端性能优化
         if (isMobileDevice()) {
-            titleBackground.style.backgroundAttachment = 'scroll';
-            titleBackground.style.webkitBackgroundSize = 'cover';
             titleBackground.style.webkitTransform = 'translateZ(0)';
             titleBackground.style.webkitBackfaceVisibility = 'hidden';
+            titleBackground.style.transform = 'translateZ(0)';
         }
         
         debugLog('背景图片设置完成');
@@ -959,10 +957,8 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         debugLog('成功找到.title-background元素');
         
-        // 延迟检查背景图片，确保CSS样式已加载
-        setTimeout(() => {
-            checkTitleBackgroundImage();
-        }, 100);
+        // 立即检查背景图片，无需延迟
+        checkTitleBackgroundImage();
     }
     
     // 绑定开始游戏按钮事件
