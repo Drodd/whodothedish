@@ -11,10 +11,15 @@ const titleScreen = document.getElementById('titleScreen');
 const gameScreen = document.getElementById('gameScreen');
 const startGameBtn = document.getElementById('startGameBtn');
 const loadingIndicator = document.getElementById('loadingIndicator');
-const backgroundImage = document.getElementById('backgroundImage');
+const backgroundImage1 = document.getElementById('backgroundImage1');
+const backgroundImage2 = document.getElementById('backgroundImage2');
 const storyTextElement = document.getElementById('storyText');
 const choicesContainer = document.getElementById('choicesContainer');
 const continueArea = document.getElementById('continueArea');
+const titleBackground = document.querySelector('.title-background');
+
+// 背景图层状态管理
+let currentBackgroundLayer = 1; // 当前活跃的背景图层 (1 或 2)
 
 // 故事数据结构
 const storyData = {
@@ -360,14 +365,26 @@ function preloadImages() {
         img.onload = () => {
             loadedImages++;
             updateLoadingProgress();
+            
+            // 如果是标题背景图，立即显示
+            if (imagePath === 'img/0_Title.png' && titleBackground) {
+                titleBackground.classList.add('loaded');
+            }
+            
             if (loadedImages === totalImages) {
                 onImagesLoaded();
             }
         };
         img.onerror = () => {
-            console.error(`Failed to load image: ${imagePath}`);
+            console.error(`图片加载失败: ${imagePath}`);
             loadedImages++;
             updateLoadingProgress();
+            
+            // 如果标题背景图加载失败，仍然显示容器以避免空白
+            if (imagePath === 'img/0_Title.png' && titleBackground) {
+                titleBackground.style.opacity = '1';
+            }
+            
             if (loadedImages === totalImages) {
                 onImagesLoaded();
             }
@@ -389,6 +406,24 @@ function onImagesLoaded() {
         startGameBtn.disabled = false;
         startGameBtn.textContent = '开始游戏';
     }, 500);
+}
+
+// 背景图淡入淡出切换函数
+function changeBackground(newImageUrl) {
+    const currentLayer = currentBackgroundLayer === 1 ? backgroundImage1 : backgroundImage2;
+    const nextLayer = currentBackgroundLayer === 1 ? backgroundImage2 : backgroundImage1;
+    
+    // 设置新背景图到隐藏层
+    nextLayer.style.backgroundImage = `url('${newImageUrl}')`;
+    
+    // 淡入新背景，淡出旧背景
+    nextLayer.classList.add('active');
+    currentLayer.classList.remove('active');
+    
+    // 切换当前活跃层
+    currentBackgroundLayer = currentBackgroundLayer === 1 ? 2 : 1;
+    
+    console.log(`背景图切换到: ${newImageUrl}`);
 }
 
 // 界面切换功能
@@ -420,6 +455,11 @@ function initGame() {
     continueArea.classList.remove('show');
     choicesContainer.classList.remove('show');
     
+    // 重置背景图层状态
+    backgroundImage1.classList.remove('active');
+    backgroundImage2.classList.remove('active');
+    currentBackgroundLayer = 1;
+    
     // 开始第一个故事
     currentStory = 'start';
     showStory(currentStory);
@@ -433,8 +473,8 @@ function showStory(storyId) {
         return;
     }
 
-    // 更新背景图片
-    backgroundImage.style.backgroundImage = `url('${story.background}')`;
+    // 使用淡入淡出效果更新背景图片
+    changeBackground(story.background);
 
     // 隐藏选项按钮
     choicesContainer.classList.remove('show');
