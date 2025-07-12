@@ -1,3 +1,10 @@
+:root {
+    /* 动态适配的CSS变量 */
+    --text-area-height: 50vh;
+    --button-area-bottom: 8vh;
+    --button-area-margin: 12vh;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -80,7 +87,7 @@ body {
     font-size: 16px;
     line-height: 1.6;
     text-align: left;
-    max-height: 50vh;
+    max-height: var(--text-area-height);
     overflow-y: auto;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     pointer-events: auto; /* 允许文字区域交互 */
@@ -152,7 +159,7 @@ body {
 
 .choices-container {
     position: absolute;
-    bottom: 20px;
+    bottom: var(--button-area-bottom);
     left: 20px;
     right: 20px;
     display: flex;
@@ -164,7 +171,7 @@ body {
     transition: all 0.5s ease;
     /* 移动端安全区域适配 */
     padding-bottom: env(safe-area-inset-bottom, 0px);
-    margin-bottom: 60px; /* 为浏览器地址栏预留空间 */
+    margin-bottom: var(--button-area-margin); /* 动态调整底部空间 */
 }
 
 .choices-container.show {
@@ -236,7 +243,7 @@ body {
         right: 15px;
         font-size: 14px;
         padding: 20px;
-        max-height: 45vh; /* 减少文字区域高度，为选项预留更多空间 */
+        /* 使用动态高度，不再覆盖 */
     }
     
     .continue-hint {
@@ -245,10 +252,9 @@ body {
     }
     
     .choices-container {
-        bottom: 15px;
         left: 15px;
         right: 15px;
-        margin-bottom: 80px; /* 移动端增加更多底部空间 */
+        /* 使用动态值，不再覆盖 */
         padding-bottom: max(env(safe-area-inset-bottom, 0px), 20px); /* 确保最小安全距离 */
     }
     
@@ -261,12 +267,11 @@ body {
 
 /* 针对非常小的屏幕的额外优化 */
 @media (max-width: 480px) and (max-height: 800px) {
-    .choices-container {
-        margin-bottom: 100px; /* 小屏幕手机需要更多底部空间 */
-    }
-    
-    .story-text {
-        max-height: 40vh; /* 进一步减少文字区域高度 */
+    /* 小屏幕使用JavaScript动态适配，不再使用固定值 */
+    .choice-btn {
+        font-size: 13px; /* 稍微减小字体以节省空间 */
+        padding: 12px 16px;
+        min-height: 44px; /* 稍微减小最小高度 */
     }
 }
 

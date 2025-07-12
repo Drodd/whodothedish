@@ -544,8 +544,68 @@ document.addEventListener('gesturestart', (event) => {
     event.preventDefault();
 });
 
+// 动态适配屏幕尺寸
+function adaptToScreenSize() {
+    const vh = window.innerHeight;
+    const vw = window.innerWidth;
+    const aspectRatio = vh / vw;
+    const isSmallScreen = vh < 600 || vw < 400;
+    
+    // 计算动态的布局参数
+    let textAreaHeight, buttonAreaBottom, buttonAreaMargin;
+    
+    if (isSmallScreen) {
+        // 小屏幕设备特殊处理
+        textAreaHeight = '42vh';
+        buttonAreaBottom = '3vh';
+        buttonAreaMargin = '8vh';
+    } else if (aspectRatio > 2.2) {
+        // 超长屏幕 (如21:9+)
+        textAreaHeight = '60vh';
+        buttonAreaBottom = '3vh';
+        buttonAreaMargin = '8vh';
+    } else if (aspectRatio > 2.0) {
+        // 很长屏幕 (如20:9)
+        textAreaHeight = '58vh';
+        buttonAreaBottom = '4vh';
+        buttonAreaMargin = '10vh';
+    } else if (aspectRatio > 1.8) {
+        // 长屏幕 (如18:9, 19.5:9)
+        textAreaHeight = '52vh';
+        buttonAreaBottom = '6vh';
+        buttonAreaMargin = '12vh';
+    } else if (aspectRatio > 1.5) {
+        // 标准屏幕 (如16:9)
+        textAreaHeight = '48vh';
+        buttonAreaBottom = '8vh';
+        buttonAreaMargin = '15vh';
+    } else {
+        // 宽屏或横屏
+        textAreaHeight = '45vh';
+        buttonAreaBottom = '5vh';
+        buttonAreaMargin = '10vh';
+    }
+    
+    // 应用动态样式
+    document.documentElement.style.setProperty('--text-area-height', textAreaHeight);
+    document.documentElement.style.setProperty('--button-area-bottom', buttonAreaBottom);
+    document.documentElement.style.setProperty('--button-area-margin', buttonAreaMargin);
+    
+    // 调试信息（开发时可取消注释）
+    // console.log(`Screen: ${vw}x${vh}, Ratio: ${aspectRatio.toFixed(2)}, Text: ${textAreaHeight}, Margin: ${buttonAreaMargin}`);
+}
+
 // 页面加载完成后初始化
-document.addEventListener('DOMContentLoaded', initGame);
+document.addEventListener('DOMContentLoaded', () => {
+    adaptToScreenSize();
+    initGame();
+});
+
+// 监听屏幕尺寸变化
+window.addEventListener('resize', adaptToScreenSize);
+window.addEventListener('orientationchange', () => {
+    setTimeout(adaptToScreenSize, 100); // 延迟执行，等待方向变化完成
+});
 
 // 页面可见性变化时暂停/恢复
 document.addEventListener('visibilitychange', () => {
