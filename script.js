@@ -13,35 +13,8 @@ function isMobileDevice() {
 }
 
 function debugLog(message) {
+    // 只在控制台输出，不在页面上显示
     console.log(`[移动端调试] ${message}`);
-    // 在移动端显示调试信息
-    if (isMobileDevice()) {
-        const debugDiv = document.getElementById('debug-info') || (() => {
-            const div = document.createElement('div');
-            div.id = 'debug-info';
-            div.style.cssText = `
-                position: fixed;
-                top: 10px;
-                right: 10px;
-                background: rgba(0,0,0,0.8);
-                color: white;
-                padding: 10px;
-                font-size: 12px;
-                border-radius: 5px;
-                z-index: 9999;
-                max-width: 300px;
-                font-family: monospace;
-            `;
-            document.body.appendChild(div);
-            return div;
-        })();
-        debugDiv.innerHTML = `<div>${new Date().toLocaleTimeString()}: ${message}</div>` + debugDiv.innerHTML;
-        // 只保留最近10条记录
-        const logs = debugDiv.querySelectorAll('div');
-        if (logs.length > 10) {
-            logs[logs.length - 1].remove();
-        }
-    }
 }
 
 // 背景图层状态管理
@@ -426,6 +399,80 @@ function preloadNextImages(storyId) {
     debugLog(`为故事 ${storyId} 预加载了 ${nextStoryIds.length} 个下一阶段的图片`);
 }
 
+// 检查标题背景图片是否正确加载
+function checkTitleBackgroundImage() {
+    if (!titleBackground) return;
+    
+    const imagePath = './img/0_Title.png';
+    
+    // 创建一个新的Image对象来测试图片是否能加载
+    const testImg = new Image();
+    
+    testImg.onload = function() {
+        debugLog('标题背景图片加载测试成功');
+        
+        // 检查CSS中的背景图片是否正确应用
+        const computedStyle = window.getComputedStyle(titleBackground);
+        const bgImage = computedStyle.backgroundImage;
+        
+        if (bgImage === 'none' || bgImage === '') {
+            debugLog('CSS背景图片未应用，尝试强制设置');
+            forceTitleBackgroundImage();
+        } else {
+            debugLog('CSS背景图片已正确应用');
+        }
+    };
+    
+    testImg.onerror = function() {
+        debugLog('标题背景图片加载失败，尝试备用方案');
+        forceTitleBackgroundImage();
+    };
+    
+    testImg.src = imagePath;
+}
+
+// 强制设置标题背景图片
+function forceTitleBackgroundImage() {
+    if (!titleBackground) return;
+    
+    // 设置备用背景色
+    titleBackground.style.backgroundColor = '#1a1a1a';
+    
+    const imagePath = './img/0_Title.png';
+    
+    // 直接设置背景图片样式
+    titleBackground.style.backgroundImage = `url("${imagePath}")`;
+    titleBackground.style.backgroundSize = 'cover';
+    titleBackground.style.backgroundPosition = 'center';
+    titleBackground.style.backgroundRepeat = 'no-repeat';
+    titleBackground.style.opacity = '1';
+    
+    // 移动端特殊处理
+    if (isMobileDevice()) {
+        titleBackground.style.backgroundAttachment = 'scroll';
+        titleBackground.style.webkitBackgroundSize = 'cover';
+        titleBackground.style.webkitTransform = 'translateZ(0)';
+        titleBackground.style.webkitBackfaceVisibility = 'hidden';
+    }
+    
+    debugLog('强制设置标题背景图片完成');
+    
+    // 延迟检查图片是否真正加载成功
+    setTimeout(() => {
+        const testImg = new Image();
+        testImg.onload = () => {
+            debugLog('背景图片最终加载成功');
+        };
+        testImg.onerror = () => {
+            debugLog('背景图片最终加载失败，使用备用背景色');
+            titleBackground.style.backgroundColor = '#2d2d2d';
+            // 添加渐变效果作为备用背景
+            titleBackground.style.background = 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)';
+        };
+        testImg.src = imagePath;
+    }, 500);
+}
+
 // 背景图淡入淡出切换函数
 function changeBackground(newImageUrl) {
     const currentLayer = currentBackgroundLayer === 1 ? backgroundImage1 : backgroundImage2;
@@ -746,6 +793,12 @@ function adaptToScreenSize() {
 
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', () => {
+    // 清理可能存在的调试元素
+    const debugDiv = document.getElementById('debug-info');
+    if (debugDiv) {
+        debugDiv.remove();
+    }
+    
     // 初始化DOM元素引用
     titleScreen = document.getElementById('titleScreen');
     gameScreen = document.getElementById('gameScreen');
@@ -769,6 +822,11 @@ document.addEventListener('DOMContentLoaded', () => {
         debugLog('错误：无法找到.title-background元素');
     } else {
         debugLog('成功找到.title-background元素');
+        
+        // 延迟检查背景图片，确保CSS样式已加载
+        setTimeout(() => {
+            checkTitleBackgroundImage();
+        }, 100);
     }
     
     // 绑定开始游戏按钮事件
