@@ -15,6 +15,70 @@ function isMobileDevice() {
 function debugLog(message) {
     // 只在控制台输出，不在页面上显示
     console.log(`[移动端调试] ${message}`);
+    
+    // 在URL中包含debug参数时，在页面上也显示调试信息
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('debug') === 'true') {
+        showDebugMessage(message);
+    }
+}
+
+// 在页面上显示调试信息（仅debug模式）
+function showDebugMessage(message) {
+    let debugDiv = document.getElementById('debug-overlay');
+    if (!debugDiv) {
+        debugDiv = document.createElement('div');
+        debugDiv.id = 'debug-overlay';
+        debugDiv.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.9);
+            color: #00ff00;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            z-index: 99999;
+            max-height: 200px;
+            overflow-y: auto;
+            border-bottom: 2px solid #00ff00;
+        `;
+        document.body.appendChild(debugDiv);
+        
+        // 添加关闭按钮
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = '×';
+        closeBtn.style.cssText = `
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            background: #ff0000;
+            color: white;
+            border: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 12px;
+        `;
+        closeBtn.onclick = () => debugDiv.remove();
+        debugDiv.appendChild(closeBtn);
+    }
+    
+    const time = new Date().toLocaleTimeString();
+    const logEntry = document.createElement('div');
+    logEntry.textContent = `[${time}] ${message}`;
+    logEntry.style.marginBottom = '2px';
+    debugDiv.appendChild(logEntry);
+    
+    // 只保留最近20条记录
+    const logs = debugDiv.querySelectorAll('div');
+    if (logs.length > 20) {
+        logs[0].remove();
+    }
+    
+    debugDiv.scrollTop = debugDiv.scrollHeight;
 }
 
 // 背景图层状态管理
@@ -403,74 +467,136 @@ function preloadNextImages(storyId) {
 function checkTitleBackgroundImage() {
     if (!titleBackground) return;
     
-    const imagePath = './img/0_Title.png';
+    // 尝试多种图片路径
+    const imagePaths = [
+        './img/0_Title.png',
+        'img/0_Title.png',
+        location.origin + '/img/0_Title.png',
+        location.origin + location.pathname.replace(/\/[^\/]*$/, '') + '/img/0_Title.png'
+    ];
     
-    // 创建一个新的Image对象来测试图片是否能加载
+    debugLog(`当前页面URL: ${location.href}`);
+    debugLog(`尝试的图片路径: ${imagePaths.join(', ')}`);
+    
+    // 尝试加载每个路径
+    tryLoadImage(imagePaths, 0);
+}
+
+// 递归尝试加载不同路径的图片
+function tryLoadImage(paths, index) {
+    if (index >= paths.length) {
+        debugLog('所有图片路径都尝试失败，使用备用背景');
+        forceTitleBackgroundImage(null);
+        showImageLoadError();
+        return;
+    }
+    
+    const imagePath = paths[index];
     const testImg = new Image();
     
     testImg.onload = function() {
-        debugLog('标题背景图片加载测试成功');
-        
-        // 检查CSS中的背景图片是否正确应用
-        const computedStyle = window.getComputedStyle(titleBackground);
-        const bgImage = computedStyle.backgroundImage;
-        
-        if (bgImage === 'none' || bgImage === '') {
-            debugLog('CSS背景图片未应用，尝试强制设置');
-            forceTitleBackgroundImage();
-        } else {
-            debugLog('CSS背景图片已正确应用');
-        }
+        debugLog(`图片加载成功: ${imagePath}`);
+        forceTitleBackgroundImage(imagePath);
+        hideImageLoadError();
     };
     
     testImg.onerror = function() {
-        debugLog('标题背景图片加载失败，尝试备用方案');
-        forceTitleBackgroundImage();
+        debugLog(`图片加载失败: ${imagePath}`);
+        // 尝试下一个路径
+        tryLoadImage(paths, index + 1);
     };
     
+    debugLog(`尝试加载图片: ${imagePath}`);
     testImg.src = imagePath;
 }
 
+// 显示图片加载错误提示
+function showImageLoadError() {
+    const errorDiv = document.createElement('div');
+    errorDiv.id = 'image-load-error';
+    errorDiv.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        right: 20px;
+        background: rgba(220, 53, 69, 0.9);
+        color: white;
+        padding: 15px;
+        border-radius: 8px;
+        font-size: 14px;
+        text-align: center;
+        z-index: 10000;
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+    `;
+    errorDiv.innerHTML = `
+        <div style="font-weight: bold; margin-bottom: 5px;">📷 背景图片加载失败</div>
+        <div style="font-size: 12px; opacity: 0.9;">
+            游戏功能正常，但无法显示背景图片。<br>
+            请检查网络连接或刷新页面重试。
+        </div>
+        <button onclick="this.parentElement.remove()" style="
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.4);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin-top: 8px;
+            cursor: pointer;
+        ">知道了</button>
+    `;
+    
+    document.body.appendChild(errorDiv);
+    
+    // 30秒后自动消失
+    setTimeout(() => {
+        if (document.getElementById('image-load-error')) {
+            errorDiv.remove();
+        }
+    }, 30000);
+}
+
+// 隐藏图片加载错误提示
+function hideImageLoadError() {
+    const errorDiv = document.getElementById('image-load-error');
+    if (errorDiv) {
+        errorDiv.remove();
+    }
+}
+
 // 强制设置标题背景图片
-function forceTitleBackgroundImage() {
+function forceTitleBackgroundImage(imagePath) {
     if (!titleBackground) return;
     
     // 设置备用背景色
     titleBackground.style.backgroundColor = '#1a1a1a';
     
-    const imagePath = './img/0_Title.png';
-    
-    // 直接设置背景图片样式
-    titleBackground.style.backgroundImage = `url("${imagePath}")`;
-    titleBackground.style.backgroundSize = 'cover';
-    titleBackground.style.backgroundPosition = 'center';
-    titleBackground.style.backgroundRepeat = 'no-repeat';
-    titleBackground.style.opacity = '1';
-    
-    // 移动端特殊处理
-    if (isMobileDevice()) {
-        titleBackground.style.backgroundAttachment = 'scroll';
-        titleBackground.style.webkitBackgroundSize = 'cover';
-        titleBackground.style.webkitTransform = 'translateZ(0)';
-        titleBackground.style.webkitBackfaceVisibility = 'hidden';
+    if (imagePath) {
+        // 使用提供的图片路径
+        debugLog(`设置背景图片: ${imagePath}`);
+        titleBackground.style.backgroundImage = `url("${imagePath}")`;
+        titleBackground.style.backgroundSize = 'cover';
+        titleBackground.style.backgroundPosition = 'center';
+        titleBackground.style.backgroundRepeat = 'no-repeat';
+        titleBackground.style.opacity = '1';
+        
+        // 移动端特殊处理
+        if (isMobileDevice()) {
+            titleBackground.style.backgroundAttachment = 'scroll';
+            titleBackground.style.webkitBackgroundSize = 'cover';
+            titleBackground.style.webkitTransform = 'translateZ(0)';
+            titleBackground.style.webkitBackfaceVisibility = 'hidden';
+        }
+        
+        debugLog('背景图片设置完成');
+    } else {
+        // 没有可用的图片路径，使用备用背景
+        debugLog('使用备用渐变背景');
+        titleBackground.style.backgroundImage = 'none';
+        titleBackground.style.background = 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)';
+        titleBackground.style.backgroundSize = 'cover';
+        titleBackground.style.opacity = '1';
     }
-    
-    debugLog('强制设置标题背景图片完成');
-    
-    // 延迟检查图片是否真正加载成功
-    setTimeout(() => {
-        const testImg = new Image();
-        testImg.onload = () => {
-            debugLog('背景图片最终加载成功');
-        };
-        testImg.onerror = () => {
-            debugLog('背景图片最终加载失败，使用备用背景色');
-            titleBackground.style.backgroundColor = '#2d2d2d';
-            // 添加渐变效果作为备用背景
-            titleBackground.style.background = 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)';
-        };
-        testImg.src = imagePath;
-    }, 500);
 }
 
 // 背景图淡入淡出切换函数
