@@ -573,12 +573,45 @@ function hideImageLoadError() {
     }
 }
 
+// 随机选择背景图片入场动画
+function applyRandomSlideInAnimation() {
+    if (!titleBackground) return;
+    
+    const animations = [
+        'slide-in-top-left',
+        'slide-in-top-right',
+        'slide-in-bottom-left',
+        'slide-in-bottom-right',
+        'slide-in-left',
+        'slide-in-right',
+        'slide-in-top',
+        'slide-in-bottom'
+    ];
+    
+    // 随机选择一个动画
+    const randomAnimation = animations[Math.floor(Math.random() * animations.length)];
+    
+    debugLog(`应用随机入场动画: ${randomAnimation}`);
+    
+    // 应用动画类
+    titleBackground.classList.add(randomAnimation);
+    
+    // 动画完成后移除类，并确保最终状态正确
+    setTimeout(() => {
+        titleBackground.classList.remove(randomAnimation);
+        // 确保动画完成后图片仍然可见，并且旋转角度精确为0
+        titleBackground.style.opacity = '1';
+        titleBackground.style.transform = 'translate(0, 0) rotate(0deg) scale(1) translateZ(0)';
+        debugLog('入场动画完成，图片状态已确保，旋转角度重置为0');
+    }, 1200); // 与CSS动画时长一致
+}
+
 // 强制设置标题背景图片
 function forceTitleBackgroundImage(imagePath) {
     if (!titleBackground) return;
     
-    // 设置备用背景色
-    titleBackground.style.backgroundColor = '#1a1a1a';
+    // 设置纯黑色备用背景，避免动画穿帮
+    titleBackground.style.backgroundColor = '#000000';
     
     if (imagePath) {
         // 使用提供的图片路径
@@ -587,23 +620,27 @@ function forceTitleBackgroundImage(imagePath) {
         titleBackground.style.backgroundSize = 'cover';
         titleBackground.style.backgroundPosition = 'center';
         titleBackground.style.backgroundRepeat = 'no-repeat';
-        titleBackground.style.opacity = '1';
         
-        // 移动端性能优化
+        // 移动端性能优化，确保旋转角度为0
         if (isMobileDevice()) {
-            titleBackground.style.webkitTransform = 'translateZ(0)';
+            titleBackground.style.webkitTransform = 'translate(0, 0) rotate(0deg) scale(1) translateZ(0)';
             titleBackground.style.webkitBackfaceVisibility = 'hidden';
-            titleBackground.style.transform = 'translateZ(0)';
+            titleBackground.style.transform = 'translate(0, 0) rotate(0deg) scale(1) translateZ(0)';
         }
         
         debugLog('背景图片设置完成');
+        
+        // 应用随机入场动画
+        applyRandomSlideInAnimation();
     } else {
-        // 没有可用的图片路径，使用备用背景
-        debugLog('使用备用渐变背景');
+        // 没有可用的图片路径，使用纯黑色备用背景
+        debugLog('使用纯黑色备用背景');
         titleBackground.style.backgroundImage = 'none';
-        titleBackground.style.background = 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)';
+        titleBackground.style.backgroundColor = '#000000';
         titleBackground.style.backgroundSize = 'cover';
-        titleBackground.style.opacity = '1';
+        
+        // 即使使用备用背景，也应用入场动画
+        applyRandomSlideInAnimation();
     }
 }
 
@@ -636,6 +673,33 @@ function showTitleScreen() {
     gameScreen.classList.remove('show');
     setTimeout(() => {
         titleScreen.classList.remove('hidden');
+        
+        // 重新开始游戏时，重置背景图片状态并播放入场动画
+        if (titleBackground) {
+            debugLog('重新开始游戏，重置背景图片状态');
+            
+            // 重置背景图片状态，确保旋转角度为0
+            titleBackground.style.opacity = '0';
+            titleBackground.style.transform = 'translate(0, 0) rotate(0deg) scale(1) translateZ(0)';
+            titleBackground.style.backgroundColor = '#000000';
+            
+            // 移除可能存在的动画类
+            const animationClasses = [
+                'slide-in-top-left', 'slide-in-top-right',
+                'slide-in-bottom-left', 'slide-in-bottom-right',
+                'slide-in-left', 'slide-in-right',
+                'slide-in-top', 'slide-in-bottom'
+            ];
+            animationClasses.forEach(className => {
+                titleBackground.classList.remove(className);
+            });
+            
+            // 短暂延迟后播放入场动画
+            setTimeout(() => {
+                applyRandomSlideInAnimation();
+                debugLog('重新开始游戏，播放入场动画');
+            }, 100);
+        }
     }, 800);
 }
 
@@ -959,6 +1023,24 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // 立即检查背景图片，无需延迟
         checkTitleBackgroundImage();
+        
+        // 设置后备动画触发器，确保动画能够播放
+        setTimeout(() => {
+            // 检查是否已经有动画在播放
+            const hasAnimation = titleBackground.classList.contains('slide-in-top-left') ||
+                                titleBackground.classList.contains('slide-in-top-right') ||
+                                titleBackground.classList.contains('slide-in-bottom-left') ||
+                                titleBackground.classList.contains('slide-in-bottom-right') ||
+                                titleBackground.classList.contains('slide-in-left') ||
+                                titleBackground.classList.contains('slide-in-right') ||
+                                titleBackground.classList.contains('slide-in-top') ||
+                                titleBackground.classList.contains('slide-in-bottom');
+                                
+            if (!hasAnimation) {
+                debugLog('触发后备入场动画');
+                applyRandomSlideInAnimation();
+            }
+        }, 200); // 给图片检查一点时间
     }
     
     // 绑定开始游戏按钮事件

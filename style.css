@@ -69,15 +69,14 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: #1a1a1a; /* 备用背景色 */
+    background-color: #000000; /* 纯黑色备用背景，避免动画穿帮 */
     background-image: url('img/0_Title.png'); /* 移除多余的 './' */
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     /* 移除可能导致移动端问题的 background-attachment */
     z-index: 1;
-    opacity: 1;
-    /* 移除过渡效果，避免延迟显示 */
+    opacity: 0; /* 初始隐藏，等待入场动画 */
     /* 添加移动端优化 */
     -webkit-background-size: cover;
     -moz-background-size: cover;
@@ -97,6 +96,8 @@ body {
     height: 100%;
     background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.5) 100%);
     z-index: 2;
+    /* 确保遮罩与父元素一起参与动画 */
+    opacity: inherit;
 }
 
 .title-content {
@@ -411,6 +412,8 @@ body {
         -webkit-background-size: cover;
         -moz-background-size: cover;
         -o-background-size: cover;
+        /* 确保初始状态隐藏，等待动画 */
+        opacity: 0;
     }
     
 
@@ -493,7 +496,138 @@ body {
     }
 }
 
-/* 加载动画 */
+/* 盘子入场动画 - 从不同角度滑入 */
+@keyframes slideInFromTopLeft {
+    0% { 
+        transform: translate(-120%, -120%) rotate(-180deg) scale(0.8);
+        opacity: 0;
+    }
+    70% { 
+        transform: translate(0, 0) rotate(-10deg) scale(1.05);
+        opacity: 1;
+    }
+    100% { 
+        transform: translate(0, 0) rotate(0deg) scale(1) translateZ(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInFromTopRight {
+    0% { 
+        transform: translate(120%, -120%) rotate(180deg) scale(0.8);
+        opacity: 0;
+    }
+    70% { 
+        transform: translate(0, 0) rotate(10deg) scale(1.05);
+        opacity: 1;
+    }
+    100% { 
+        transform: translate(0, 0) rotate(0deg) scale(1) translateZ(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInFromBottomLeft {
+    0% { 
+        transform: translate(-120%, 120%) rotate(180deg) scale(0.8);
+        opacity: 0;
+    }
+    70% { 
+        transform: translate(0, 0) rotate(10deg) scale(1.05);
+        opacity: 1;
+    }
+    100% { 
+        transform: translate(0, 0) rotate(0deg) scale(1) translateZ(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInFromBottomRight {
+    0% { 
+        transform: translate(120%, 120%) rotate(-180deg) scale(0.8);
+        opacity: 0;
+    }
+    70% { 
+        transform: translate(0, 0) rotate(-10deg) scale(1.05);
+        opacity: 1;
+    }
+    100% { 
+        transform: translate(0, 0) rotate(0deg) scale(1) translateZ(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInFromLeft {
+    0% { 
+        transform: translate(-120%, 0) rotate(-90deg) scale(0.8);
+        opacity: 0;
+    }
+    70% { 
+        transform: translate(0, 0) rotate(5deg) scale(1.05);
+        opacity: 1;
+    }
+    100% { 
+        transform: translate(0, 0) rotate(0deg) scale(1) translateZ(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInFromRight {
+    0% { 
+        transform: translate(120%, 0) rotate(90deg) scale(0.8);
+        opacity: 0;
+    }
+    70% { 
+        transform: translate(0, 0) rotate(-5deg) scale(1.05);
+        opacity: 1;
+    }
+    100% { 
+        transform: translate(0, 0) rotate(0deg) scale(1) translateZ(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInFromTop {
+    0% { 
+        transform: translate(0, -120%) rotate(45deg) scale(0.8);
+        opacity: 0;
+    }
+    70% { 
+        transform: translate(0, 0) rotate(-3deg) scale(1.05);
+        opacity: 1;
+    }
+    100% { 
+        transform: translate(0, 0) rotate(0deg) scale(1) translateZ(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInFromBottom {
+    0% { 
+        transform: translate(0, 120%) rotate(-45deg) scale(0.8);
+        opacity: 0;
+    }
+    70% { 
+        transform: translate(0, 0) rotate(3deg) scale(1.05);
+        opacity: 1;
+    }
+    100% { 
+        transform: translate(0, 0) rotate(0deg) scale(1) translateZ(0);
+        opacity: 1;
+    }
+}
+
+/* 应用动画的类 */
+.slide-in-top-left { animation: slideInFromTopLeft 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+.slide-in-top-right { animation: slideInFromTopRight 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+.slide-in-bottom-left { animation: slideInFromBottomLeft 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+.slide-in-bottom-right { animation: slideInFromBottomRight 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+.slide-in-left { animation: slideInFromLeft 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+.slide-in-right { animation: slideInFromRight 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+.slide-in-top { animation: slideInFromTop 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+.slide-in-bottom { animation: slideInFromBottom 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+
+/* 原有的加载动画 */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
