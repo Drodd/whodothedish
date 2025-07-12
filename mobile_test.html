@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>移动端背景图片测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .background-test {
+            width: 100%;
+            height: 300px;
+            background-color: #333;
+            background-image: url('./img/0_Title.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            border-radius: 10px;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .test-info {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #2196F3;
+        }
+        
+        .test-results {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .btn {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            background: #1976D2;
+        }
+        
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        
+        .status.loading {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>移动端背景图片测试</h1>
+        
+        <div class="test-info">
+            <h3>测试说明</h3>
+            <p>此页面用于测试移动端背景图片加载问题。如果下方的灰色区域显示了背景图片，说明图片加载正常。</p>
+        </div>
+        
+        <div class="background-test" id="backgroundTest">
+            <div class="overlay">
+                <div>背景图片测试区域</div>
+                <div id="imageStatus">检测中...</div>
+            </div>
+        </div>
+        
+        <div class="test-results" id="testResults">
+            测试结果将显示在这里...
+        </div>
+        
+        <button class="btn" onclick="testImageLoad()">重新测试</button>
+        <button class="btn" onclick="forceLoad()">强制加载</button>
+        <button class="btn" onclick="showDeviceInfo()">设备信息</button>
+        
+        <div id="statusArea"></div>
+    </div>
+
+    <script>
+        let testResults = [];
+        
+        function addResult(message, type = 'info') {
+            const time = new Date().toLocaleTimeString();
+            testResults.push(`[${time}] ${message}`);
+            updateResults();
+            
+            // 添加状态显示
+            const statusArea = document.getElementById('statusArea');
+            const statusDiv = document.createElement('div');
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+            statusArea.appendChild(statusDiv);
+            
+            // 只保留最近5条状态
+            const statuses = statusArea.querySelectorAll('.status');
+            if (statuses.length > 5) {
+                statuses[0].remove();
+            }
+        }
+        
+        function updateResults() {
+            document.getElementById('testResults').textContent = testResults.join('\n');
+        }
+        
+        function testImageLoad() {
+            addResult('开始测试图片加载...', 'loading');
+            
+            const img = new Image();
+            img.onload = function() {
+                addResult('图片加载成功！', 'success');
+                document.getElementById('imageStatus').textContent = '✓ 图片加载成功';
+                checkBackgroundImage();
+            };
+            
+            img.onerror = function() {
+                addResult('图片加载失败！', 'error');
+                document.getElementById('imageStatus').textContent = '✗ 图片加载失败';
+            };
+            
+            img.src = './img/0_Title.png';
+        }
+        
+        function checkBackgroundImage() {
+            const bgTest = document.getElementById('backgroundTest');
+            const computedStyle = window.getComputedStyle(bgTest);
+            const bgImage = computedStyle.backgroundImage;
+            
+            addResult(`背景图片样式: ${bgImage}`);
+            
+            if (bgImage === 'none' || bgImage === '') {
+                addResult('背景图片未应用！', 'error');
+            } else {
+                addResult('背景图片样式已应用', 'success');
+            }
+        }
+        
+        function forceLoad() {
+            addResult('强制设置背景图片...', 'loading');
+            const bgTest = document.getElementById('backgroundTest');
+            bgTest.style.backgroundImage = 'url("./img/0_Title.png")';
+            bgTest.style.backgroundSize = 'cover';
+            bgTest.style.backgroundPosition = 'center';
+            bgTest.style.backgroundRepeat = 'no-repeat';
+            
+            setTimeout(() => {
+                checkBackgroundImage();
+            }, 100);
+        }
+        
+        function showDeviceInfo() {
+            const info = [
+                `用户代理: ${navigator.userAgent}`,
+                `屏幕尺寸: ${window.innerWidth}x${window.innerHeight}`,
+                `设备像素比: ${window.devicePixelRatio}`,
+                `颜色深度: ${screen.colorDepth}`,
+                `时区: ${Intl.DateTimeFormat().resolvedOptions().timeZone}`,
+                `语言: ${navigator.language}`,
+                `平台: ${navigator.platform}`,
+                `连接类型: ${navigator.connection ? navigator.connection.effectiveType : '未知'}`,
+                `当前URL: ${window.location.href}`
+            ];
+            
+            info.forEach(item => addResult(item));
+        }
+        
+        // 页面加载完成后自动测试
+        document.addEventListener('DOMContentLoaded', function() {
+            addResult('页面加载完成，开始自动测试...');
+            showDeviceInfo();
+            setTimeout(testImageLoad, 1000);
+        });
+    </script>
+</body>
+</html> 

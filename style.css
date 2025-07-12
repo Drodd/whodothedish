@@ -70,17 +70,18 @@ body {
     width: 100%;
     height: 100%;
     background-color: #000;
+    background-image: url('./img/0_Title.png'); /* 直接设置背景图片，无需预加载 */
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    background-attachment: scroll; /* 添加这个属性以兼容移动端 */
     z-index: 1;
-    opacity: 0;
+    opacity: 1; /* 直接显示，无需预加载 */
     transition: opacity 0.8s ease-in-out;
-}
-
-.title-background.loaded {
-    background-image: url('img/0_Title.png');
-    opacity: 1;
+    /* 添加移动端优化 */
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
 }
 
 .title-background::after {
@@ -171,42 +172,7 @@ body {
     transform: none;
 }
 
-/* 加载指示器样式 */
-.loading-indicator {
-    position: relative;
-    margin-top: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    opacity: 0;
-    transition: opacity 0.5s ease;
-}
 
-.loading-indicator.show {
-    opacity: 1;
-}
-
-.loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid rgba(255, 255, 255, 0.3);
-    border-top: 3px solid white;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 15px;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.loading-text {
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 14px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-    text-align: center;
-}
 
 /* 游戏界面样式 */
 .game-screen {
@@ -424,6 +390,23 @@ body {
         height: 100dvh;
     }
     
+    /* 移动端背景图片特殊处理 */
+    .title-background {
+        /* iOS Safari 特殊处理 */
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        /* 强制硬件加速 */
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        /* 移动端优化 */
+        background-attachment: scroll !important;
+        /* 确保背景图片不被压缩 */
+        -webkit-background-size: cover !important;
+        background-size: cover !important;
+    }
+    
+
+    
     /* Title界面移动端优化 */
     .title-top {
         padding: 80px 20px 20px 20px;
@@ -443,11 +426,6 @@ body {
         padding: 16px 35px;
         min-width: 180px;
         min-height: 52px;
-    }
-    
-    .loading-text {
-        font-size: 13px;
-        padding: 0 20px;
     }
     
     /* 游戏界面移动端优化 */
