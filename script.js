@@ -966,6 +966,17 @@ document.addEventListener('DOMContentLoaded', () => {
         showGameScreen();
     });
     
+    // 预加载第1个情节的背景图片，提升用户体验
+    const firstStoryBackground = storyData['start'].background;
+    if (firstStoryBackground) {
+        preloadImage(firstStoryBackground);
+        debugLog(`首页预加载第1个情节背景图片: ${firstStoryBackground}`);
+    }
+    
+    // 预加载第1个情节的下一步可能的背景图片，进一步提升流畅度
+    preloadNextImages('start');
+    debugLog('首页预加载第1个情节的下一步背景图片');
+    
     // 首页背景图片已直接在CSS中设置，无需预加载
     debugLog('游戏初始化完成，使用按需预加载模式');
 });
